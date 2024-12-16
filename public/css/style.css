@@ -1,0 +1,6 @@
+@charset "UTF-8";
+
+/* スクロールバーの有無で画面のガタつきを防ぐためのCSS */
+body {
+    overflow-y: scroll;
+}

@@ -1,0 +1,60 @@
+services:
+  web:
+    container_name: nginx  # Nginxコンテナの名前
+    build:
+      context: .  # ビルドコンテキスト
+      dockerfile: ./docker/nginx/Dockerfile  # 使用するDockerfile
+    ports:
+      - "80:80"  # ホストとコンテナのポートマッピング
+    volumes:
+      - ./docker/nginx/logs:/var/log/nginx  # logsフォルダに、コンテナ内のアクセスログと、エラーログをマウント
+      - ./:/var/www/html # 作業ディレクトリ直下のボリュームをlaravelフォルダにマウント
+    depends_on:
+      - app  # このサービスが依存するサービス
+
+  app:
+    container_name: php  # PHPコンテナの名前
+    build:
+      context: .  # ビルドコンテキスト
+      dockerfile: ./docker/php/Dockerfile  # 使用するDockerfile
+    depends_on:
+      - db  # このサービスが依存するサービス
+    volumes:
+      - ./:/var/www/html  # ソースコードのマウント
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini  # PHP設定ファイルのマウント
+      
+  db:
+    container_name: mysql  # MySQLコンテナの名前
+    image: mysql:8.0.38  # 使用するMySQLイメージ
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql  # MySQLのデータファイル
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf  # MySQLの設定ファイル
+      - ./docker/mysql/init.sql:/etc/mysql/init.sql  # 初期化SQLスクリプト
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}  # 環境変数の設定
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"  # ホストとコンテナのポートマッピング
+    restart: always  # コンテナの再起動ポリシー
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--host=localhost", "--user=root", "--password=${MYSQL_ROOT_PASSWORD}"]  # ヘルスチェックコマンド
+      interval: 60s  # チェックの間隔
+      timeout: 5s  # タイムアウト
+      retries: 3  # リトライ回数
+      start_period: 30s  # 起動後の猶予時間
+
+  node:
+    container_name: node  # Node.jsコンテナの名前
+    image: node:18  # Node.jsのイメージ（最新LTS版を指定）
+    working_dir: /app  # 作業ディレクトリ（プロジェクトルート）
+    volumes:
+      - ./:/app # プロジェクト直下のファイルをコンテナ内の/appにマウント（ここでpackage.jsonも含まれる）
+    ports:
+      - "5173:5173"  # Vue.js開発サーバーのポートマッピング
+    command: sh -c "npm install && npm run dev"  # 初回起動時に依存関係をインストールし、vite開発サーバーを起動
+
+networks:
+  default:
+    driver: bridge
