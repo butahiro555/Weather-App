@@ -1,6 +1,6 @@
 使用方法
-1. git clone https://github.com/butahiro555/project_on_docker.git
-2. cd project_on_docker
+1. git clone https://github.com/butahiro555/Laravel10-Vue3-docker.git
+2. cd Laravel10-Vue3-docker
 4. cp .env.example .env
 5. cp .env.testing.example .env.testing
 
