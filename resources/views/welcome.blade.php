@@ -9,3 +9,9 @@
     <div id="app"></div>
 </body>
 </html>
+
+<script>
+  window.apiRoutes = {
+    getWeather: "{{ route('getWeather') }}"
+  };
+</script>
